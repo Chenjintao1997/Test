@@ -155,6 +155,9 @@ public class TestClass {
         System.out.println(b2 >>> 2);
         System.out.println(s2 >>> 2);
 
+        System.out.println(b2 >>1 );
+        System.out.println(b2 >>2 );
+
         System.out.println(i1 << 32);
     }
 

@@ -66,6 +66,30 @@ public class ClassTest {
     }
 
     @Test
+    public void test3a() {
+        ThreadLocal<Integer> threadLocal = new ThreadLocal<>();
+        threadLocal.set(1);
+        ThreadLocal<Integer> threadLocal2 = new ThreadLocal<>();
+        threadLocal2.set(2);
+        System.out.println(threadLocal.get());
+        System.out.println(threadLocal2.get());
+
+        executorService.execute(() -> {
+            System.out.println(threadLocal.get());
+            System.out.println(threadLocal2.get());
+
+        });
+
+        executorService.execute(() -> {
+            threadLocal.set(1);
+            threadLocal2.set(2);
+            System.out.println(threadLocal.get());
+            System.out.println(threadLocal2.get());
+
+        });
+    }
+
+    @Test
     public void test4() throws IOException {
         Process process = Runtime.getRuntime().exec("who");
 
@@ -311,5 +335,117 @@ public class ClassTest {
             }
 
         }).start();
+    }
+
+    @Test
+    public void testDaemon() throws InterruptedException {
+        Thread thread = new Thread(() -> {
+            Thread thread1 = new Thread(() -> {
+                while (true) {
+                    try {
+                        Thread.sleep(1000);
+                        System.out.println("我是守护线程");
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            thread1.setDaemon(true);
+            thread1.start();
+
+            Thread thread2 = new Thread(() -> {
+                while (true) {
+                    try {
+                        Thread.sleep(1000);
+                        System.out.println("我是子线程");
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            thread2.start();
+
+            System.out.println("我是主进程");
+            try {
+                Thread.sleep(3000);
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println("主进程：我要结束了");
+        });
+
+        thread.start();
+
+        Thread.sleep(10 * 1000);
+    }
+
+    @Test
+    public void testDaemon1() throws InterruptedException {
+        Thread thread = new Thread(() -> {
+            Map<String, Boolean> map = new HashMap<>();
+            map.put("flag", true);
+            Thread thread1 = new Thread(() -> {
+                while (map.get("flag")) {
+                    try {
+                        Thread.sleep(1000);
+                        System.out.println("我是守护线程");
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            thread1.setDaemon(true);
+            thread1.start();
+
+
+            System.out.println("我是主进程");
+            try {
+                Thread.sleep(3000);
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            map.put("flag", false);
+            System.out.println("主进程：我要结束了");
+        });
+
+        thread.start();
+
+        Thread.sleep(10 * 1000);
+    }
+
+    @Test
+    public void testDaemon2() throws InterruptedException {
+        Thread thread = new Thread(() -> {
+            boolean[] flag = {true};
+            Thread thread1 = new Thread(() -> {
+                while (flag[0]) {
+                    try {
+                        Thread.sleep(1000);
+                        System.out.println("我是守护线程");
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            thread1.setDaemon(true);
+            thread1.start();
+
+
+            System.out.println("我是主进程");
+            try {
+                Thread.sleep(3000);
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            flag[0] = false;
+            System.out.println("主进程：我要结束了");
+        });
+
+        thread.start();
+
+        Thread.sleep(10 * 1000);
     }
 }

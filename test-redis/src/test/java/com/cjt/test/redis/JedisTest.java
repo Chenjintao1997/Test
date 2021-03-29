@@ -12,6 +12,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.SortingParams;
+import redis.clients.jedis.params.SetParams;
 
 import java.io.*;
 import java.util.*;
@@ -141,6 +142,30 @@ public class JedisTest {
         Student s = (Student) oi.readObject();
         System.out.println(s.toString());
 
+    }
+
+    @Test
+    public void test4(){
+        Jedis jedis = JedisUtil.getJedis();
+
+        SetParams setParams = new SetParams();
+        setParams.nx();                 //使用setNx
+        setParams.px(1000);     //设置key过期时间
+
+        String r = jedis.set("test22","222",setParams);
+        System.out.println(r);
+        System.out.println(r == null);
+
+        String r1 = jedis.set("test22","222",setParams);
+        System.out.println(r1);
+        System.out.println(r1 == null);
+
+    }
+
+    @Test
+    public void testDel(){
+        Jedis jedis = JedisUtil.getJedis();
+        System.out.println(jedis.del("test2"));
     }
 
 
