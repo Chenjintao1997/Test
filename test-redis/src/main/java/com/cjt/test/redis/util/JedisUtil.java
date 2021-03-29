@@ -16,8 +16,9 @@ public class JedisUtil {
         config.setMaxTotal(20);
         config.setMaxIdle(10);
         config.setMinIdle(5);
+        config.setMaxWaitMillis(1000);
 
-        jedisPool = new JedisPool(config, "cjtbc.com", 6379, 100, "aAa132132");
+        jedisPool = new JedisPool(config, "cjtbc.com", 6379, 1000, "aAa132132");
     }
 
     public static Jedis getJedis() {

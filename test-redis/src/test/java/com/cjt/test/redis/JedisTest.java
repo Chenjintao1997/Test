@@ -1,9 +1,9 @@
 package com.cjt.test.redis;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.cjt.test.redis.bean.Student;
 import com.cjt.test.redis.util.JedisUtil;
+import com.cjt.test.redis.util.RedisLockUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,84 +37,84 @@ public class JedisTest {
 
     @Test
     public void test1() {
-        log.info("空闲连接数：{}",jedisPool.getNumIdle());
+        log.info("空闲连接数：{}", jedisPool.getNumIdle());
         Jedis jedis = jedisPool.getResource();
-        log.info("活跃连接数：{}",jedisPool.getNumActive());
+        log.info("活跃连接数：{}", jedisPool.getNumActive());
         Set<String> set1 = jedis.keys("*");
         System.out.println(JSON.toJSONString(set1));
-        log.info("空闲连接数：{}",jedisPool.getNumIdle());
+        log.info("空闲连接数：{}", jedisPool.getNumIdle());
     }
 
     @Test
     public void test2() throws InterruptedException {
-        log.info("空闲连接数：{}",jedisPool.getNumIdle());
-        try (  Jedis jedis = jedisPool.getResource();){
+        log.info("空闲连接数：{}", jedisPool.getNumIdle());
+        try (Jedis jedis = jedisPool.getResource();) {
 
-            log.info("活跃连接数：{}",jedisPool.getNumActive());
+            log.info("活跃连接数：{}", jedisPool.getNumActive());
             Set<String> set1 = jedis.keys("*");
             System.out.println(JSON.toJSONString(set1));
 
         }
-        log.info("空闲连接数：{}",jedisPool.getNumIdle());
+        log.info("空闲连接数：{}", jedisPool.getNumIdle());
         Thread.sleep(3000);
     }
 
     @Test
-    public void test3(){
+    public void test3() {
         Jedis jedis = JedisUtil.getJedis();
-        String r1 = jedis.set("jedis_test1","jt111");
+        String r1 = jedis.set("jedis_test1", "jt111");
         System.out.println(r1);
     }
 
     @Test
-    public void testList(){
+    public void testList() {
         Jedis jedis = JedisUtil.getJedis();
-        jedis.lpush("test_list1","l1");
-        jedis.lpush("test_list1","l2","l3");
+        jedis.lpush("test_list1", "l1");
+        jedis.lpush("test_list1", "l2", "l3");
         List<String> list1 = new ArrayList<>();
         list1.add("list1");
         list1.add("list2");
 
         //插入头部
-        jedis.lpush("test_list1",list1.toArray(new String[0]));
-        jedis.lpushx("test_list1","l0");
+        jedis.lpush("test_list1", list1.toArray(new String[0]));
+        jedis.lpushx("test_list1", "l0");
         SortingParams sortingParams = new SortingParams();
         sortingParams.alpha();
         sortingParams.desc();
         //排序获取
-        List<String> r1 = jedis.sort("test_list1",sortingParams);
+        List<String> r1 = jedis.sort("test_list1", sortingParams);
         System.out.println(JSON.toJSONString(r1));
 
         //按索引获取
         long size = jedis.llen("test_list1");
-        for (long l = 0; l<size;l++){
-            System.out.println(jedis.lindex("test_list1",l));
+        for (long l = 0; l < size; l++) {
+            System.out.println(jedis.lindex("test_list1", l));
         }
 
         //按下标区间获取 -1表示列表的最后一个元素，-2表示倒数第二个元素
-        List<String> r2 = jedis.lrange("test_list1",0,-1);
+        List<String> r2 = jedis.lrange("test_list1", 0, -1);
         System.out.println(JSON.toJSONString(r2));
     }
 
     @Test
-    public void testHash(){
+    public void testHash() {
         Jedis jedis = JedisUtil.getJedis();
-        Map<String,String> map = new HashMap<>();
-        map.put("age","20");
-        map.put("name","张三");
-        jedis.hset("test_hash",map);
+        Map<String, String> map = new HashMap<>();
+        map.put("age", "20");
+        map.put("name", "张三");
+        jedis.hset("test_hash", map);
 
-        jedis.hset("test_hash","age","21");//值必须用字符串
+        jedis.hset("test_hash", "age", "21");//值必须用字符串
 
 
         Student student = new Student();
         student.setAge("30");
         student.setName("李四");
 
-        jedis.hset("test_hash2", JSON.parseObject(JSON.toJSONBytes(student),Map.class));
+        jedis.hset("test_hash2", JSON.parseObject(JSON.toJSONBytes(student), Map.class));
 
-        Map<String,String> r1 = jedis.hgetAll("test_hash");
-        Map<String,String> r2 = jedis.hgetAll("test_hash2");
+        Map<String, String> r1 = jedis.hgetAll("test_hash");
+        Map<String, String> r2 = jedis.hgetAll("test_hash2");
         System.out.println(JSON.toJSONString(r1));
         System.out.println(JSON.toJSONString(r2));
     }
@@ -133,7 +133,7 @@ public class JedisTest {
 
         byte[] barr = bo.toByteArray();
 
-        jedis.set("object_byte_test".getBytes(),barr);
+        jedis.set("object_byte_test".getBytes(), barr);
 
         byte[] rArr = jedis.get("object_byte_test".getBytes());
 
@@ -145,28 +145,44 @@ public class JedisTest {
     }
 
     @Test
-    public void test4(){
+    public void test4() {
         Jedis jedis = JedisUtil.getJedis();
 
         SetParams setParams = new SetParams();
         setParams.nx();                 //使用setNx
         setParams.px(1000);     //设置key过期时间
 
-        String r = jedis.set("test22","222",setParams);
+        String r = jedis.set("test22", "222", setParams);
         System.out.println(r);
         System.out.println(r == null);
 
-        String r1 = jedis.set("test22","222",setParams);
+        String r1 = jedis.set("test22", "222", setParams);
         System.out.println(r1);
         System.out.println(r1 == null);
 
     }
 
     @Test
-    public void testDel(){
+    public void testDel() {
         Jedis jedis = JedisUtil.getJedis();
         System.out.println(jedis.del("test2"));
     }
 
+
+    @Test
+    public void lock1() throws InterruptedException {
+        String key1 = "lock_test1";
+        boolean result = RedisLockUtil.lock(key1);
+        System.out.println(result);
+        if (result)
+            System.out.println("1111");
+        Thread.sleep(22 * 1000);
+
+        boolean result2 = RedisLockUtil.unlock(key1);
+        System.out.println(result2);
+
+
+        Thread.sleep(10 * 1000);
+    }
 
 }

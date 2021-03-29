@@ -40,7 +40,7 @@ public class RedisLockUtil {
 
         //设置一个UUID，存入redis，并用于校验是否过期被重入
         String uuid = UUID.randomUUID().toString().replaceAll("-", "");
-        String setResult = jedis.set(key, uuid);         //成功ok，失败null
+        String setResult = jedis.set(key, uuid, setParams);         //成功ok，失败null
         if (setResult == null) return false;
 
         Map<String, String> localMap = THREAD_LOCAL.get();
@@ -69,7 +69,7 @@ public class RedisLockUtil {
         Map<String, String> localMap = THREAD_LOCAL.get();
         String id = localMap.get("id");
         String v = jedis.get(key);
-        if (!v.equals(id)) return true;         //如果拿到的id不是当前线程赋予的，则为了防止删除另一个线程的锁，直接返回true
+        if (v == null || !v.equals(id)) return true;         //如果拿到的id不是当前线程赋予的，则为了防止删除另一个线程的锁，直接返回true
         boolean result = jedis.del(key) > 0;
         localMap.put("lockFlag", "false");      //设置线程局部变量锁标识
         return result;
